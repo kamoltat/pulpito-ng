@@ -133,6 +133,7 @@ export default function Run() {
           color="error"
           size="large"
           onClick={killRun}
+	  disabled
         >
           Kill Run
         </Button>
