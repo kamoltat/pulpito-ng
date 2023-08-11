@@ -27,6 +27,7 @@
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "json-to-pretty-yaml": "^1.2.2",
+    "material-react-table": "^2.0.0",
     "mdi-material-ui": "^7.7.0",
     "react": "^18.2.0",
     "react-cookie": "^5.0.0",
