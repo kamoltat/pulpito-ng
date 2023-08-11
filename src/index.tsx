@@ -14,6 +14,8 @@ import {
   ThemeProvider,
   StyledEngineProvider,
 } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 
@@ -87,17 +89,19 @@ export default function Root() {
     <React.StrictMode>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
-          <CookiesProvider>
-            <Router>
-              <QueryParamProvider adapter={ReactRouter6Adapter}>
-                <CssBaseline />
-                <QueryClientProvider client={queryClient}>
-                  <ReactQueryDevtools initialIsOpen={false} />
-                  <App darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-                </QueryClientProvider>
-              </QueryParamProvider>
-            </Router>
-          </CookiesProvider>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <CookiesProvider>
+              <Router>
+                <QueryParamProvider adapter={ReactRouter6Adapter}>
+                  <CssBaseline />
+                  <QueryClientProvider client={queryClient}>
+                    <ReactQueryDevtools initialIsOpen={false} />
+                    <App darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+                  </QueryClientProvider>
+                </QueryParamProvider>
+              </Router>
+            </CookiesProvider>
+          </LocalizationProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </React.StrictMode>

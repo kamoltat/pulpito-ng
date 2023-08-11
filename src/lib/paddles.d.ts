@@ -17,6 +17,12 @@ type NodeParams = {
   name: string;
 };
 
+export const JobStatuses = [
+  "queued", "waiting", "running", "dead", "fail", "pass", "unknown",
+] as const;
+
+export type JobStatus = (typeof JobStatuses)[number];
+
 export type Job = {
   id?: string;
   job_id: number;
@@ -24,11 +30,32 @@ export type Job = {
   suite: string;
   branch: string;
   scheduled: string;
+  posted: string;
+  updated: string;
+  started: string;
+  log_href: string;
+  sentry_event: string;
+  duration: number;
+  status: JobStatus;
+  failure_reason: string;
+  targets: Node[];
+  os_type: string;
+  os_version: string;
 };
 
 export type RunResults = {
-  [key: string]: number | string;
+  queued: number;
+  pass: number;
+  fail: number;
+  dead: number;
+  running: number;
 }
+
+export const RunStatuses = [
+  "queued", "waiting", "running", "finished dead", "finished fail", "finished pass"
+] as const;
+
+export type RunStatus = (typeof RunStatuses)[number];
 
 export type Run = {
   name: string;
@@ -36,7 +63,16 @@ export type Run = {
   suite: string;
   jobs: Job[];
   scheduled: string;
+  user: string;
+  started: string;
+  posted: string;
+  updated: string;
+  started: string;
+  runtime: string;
+  sha1: string;
   results: RunResults;
+  machine_type: string;
+  status: RunStatus;
 };
 
 export type Node = {

@@ -5,187 +5,258 @@ import type {
   SetQuery,
 } from "use-query-params";
 import { useDebounce } from "usehooks-ts";
-import type {
-  GridFilterModel,
-  GridRowClassNameParams,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-  GridRenderCellParams,
-  GridColDef,
-} from "@mui/x-data-grid";
+import {
+  useMaterialReactTable,
+  MaterialReactTable,
+  type MRT_ColumnDef,
+  type MRT_PaginationState,
+  type MRT_Updater,
+  type MRT_ColumnFiltersState,
+} from 'material-react-table';
+import { type Theme } from "@mui/material/styles";
+import { parse } from "date-fns";
 
 import { useRuns } from "../../lib/paddles";
-import { formatDate, formatDuration } from "../../lib/utils";
-import DataGrid from "../DataGrid";
+import { formatDate, formatDay, formatDuration } from "../../lib/utils";
 import IconLink from "../../components/IconLink";
+import type { Run } from "../../lib/paddles.d";
+import { RunStatuses } from "../../lib/paddles.d";
+import useDefaultTableOptions from "../../lib/table";
 
-function resultsGetter(params: GridValueGetterParams) {
-  return params.row.results[params.field];
-}
 
-const columns: GridColDef[] = [
+const DEFAULT_PAGE_SIZE = 25;
+const NON_FILTER_PARAMS = [
+  "page",
+  "pageSize",
+];
+
+const columns: MRT_ColumnDef<Run>[] = [
   {
-    field: "user",
+    header: "status",
+    accessorKey: "status",
+    filterVariant: "select",
+    Cell: ({ row }) => {
+      return row.original.status.replace("finished ", "");
+    },
+    filterSelectOptions: Object.values(RunStatuses),
   },
   {
-    field: "name",
-    headerName: "link",
-    width: 60,
-    renderCell: (params: GridRenderCellParams) => {
+    accessorKey: "user",
+    header: "user",
+    size: 60,
+    enableColumnFilter: false,
+  },
+  {
+    accessorKey: "name",
+    header: "link",
+    size: 30,
+    enableColumnFilter: false,
+    Cell: ({ row }) => {
       return (
-        <IconLink to={`/runs/${params.value}`}>
-          <OpenInNewIcon />
+        <IconLink to={`/runs/${row.original.name}`}>
+          <OpenInNewIcon fontSize="small" />
         </IconLink>
       );
     },
   },
   {
-    field: "scheduled",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    id: "scheduled",
+    header: "scheduled",
+    accessorFn: (row: Run) => formatDate(row.scheduled),
+    filterVariant: 'date',
+    sortingFn: "datetime",
+    size: 125,
   },
   {
-    field: "started",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    id: "started",
+    header: "started",
+    accessorFn: (row: Run) => formatDate(row.started),
+    enableColumnFilter: false,
+    sortingFn: "datetime",
+    size: 125,
   },
   {
-    headerName: "updated",
-    field: "posted",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    id: "posted",
+    header: "updated",
+    accessorFn: (row: Run) => formatDate(row.posted),
+    enableColumnFilter: false,
+    sortingFn: "datetime",
+    size: 125,
   },
   {
-    headerName: "runtime",
-    field: "",
-    valueGetter: (params: GridValueGetterParams) => {
-      const start = Date.parse(params.row.started);
-      const end = Date.parse(params.row.updated);
+    id: "runtime",
+    header: "runtime",
+    accessorFn: (row: Run) => {
+      const start = Date.parse(row.started);
+      const end = Date.parse(row.updated);
       if (!end || !start) return null;
-      return Math.round((end - start) / 1000);
+      return formatDuration(Math.round((end - start) / 1000));
     },
-    valueFormatter: (row: GridValueFormatterParams) => formatDuration(row.value),
-    width: 70,
+    enableColumnFilter: false,
+    sortingFn: "datetime",
+    size: 70,
   },
   {
-    field: "suite",
+    accessorKey: "suite",
+    header: "suite",
+    size: 70,
   },
   {
-    field: "branch",
+    accessorKey: "branch",
+    header: "branch",
+    maxSize: 75,
   },
   {
-    field: "machine_type",
-    width: 90,
+    accessorKey: "machine_type",
+    header: "machine_type",
+    size: 30,
   },
   {
-    field: "sha1",
-    headerName: "hash",
-    width: 75,
+    accessorKey: "sha1",
+    header: "hash",
+    size: 30,
+    maxSize: 50,
   },
   {
-    field: "queued",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.queued",
+    header: "queued",
+    size: 30,
+    enableColumnFilter: false,
   },
   {
-    field: "pass",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.pass",
+    header: "pass",
+    size: 30,
+    enableColumnFilter: false,
   },
   {
-    field: "fail",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.fail",
+    header: "fail",
+    size: 40,
+    enableColumnFilter: false,
   },
   {
-    field: "dead",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.dead",
+    header: "dead",
+    size: 40,
+    enableColumnFilter: false,
   },
   {
-    field: "running",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.running",
+    header: "running",
+    size: 40,
+    enableColumnFilter: false,
   },
   {
-    field: "waiting",
-    valueGetter: resultsGetter,
-    width: 60,
+    accessorKey: "results.waiting",
+    header: "waiting",
+    size: 40,
+    enableColumnFilter: false,
   },
 ];
 
-interface RunListProps {
+function runStatusToThemeCategory(status: string): keyof Theme["palette"] {
+  switch (status) {
+    case "finished dead": return "error";
+    case "finished fail": return "error";
+    case "finished pass": return "success";
+    case "running": return "warning";
+    default: return "info";
+  }
+};
+
+type RunListParams = {
+  [key: string]: number|string;
+}
+
+type RunListProps = {
   params: DecodedValueMap<QueryParamConfigMap>;
   setter: SetQuery<QueryParamConfigMap>;
 }
 
-export default function RunList({ params, setter }:RunListProps) {
-  const paddlesParams = {...params};
-  delete paddlesParams.user;
+export default function RunList(props: RunListProps) {
+  const { params, setter } = props;
+  const options = useDefaultTableOptions<Run>();
   const debouncedParams = useDebounce(params, 500);
-  const query = useRuns(debouncedParams);
-  if (query.isError) return null;
-  /*  If we want to automatically size the branch column:
-  const columns = [..._columns];
-  if (query.isSuccess) {
-    const branchLength = Math.max(
-      ...query.data.map((item) => item.branch.length)
-    );
-    columns.forEach((item) => {
-      if (item.field === "branch") {
-        item.width = Math.max(100, branchLength * 7);
+  const columnFilters: MRT_ColumnFiltersState = [];
+  Object.entries(debouncedParams).forEach(param => {
+    const [id, value] = param;
+    if ( NON_FILTER_PARAMS.includes(id) ) return;
+    if ( id === "date" && !!value ) {
+      columnFilters.push({
+        id: "scheduled",
+        value: parse(value, "yyyy-MM-dd", new Date())
+      }) 
+    } else {
+      columnFilters.push({id, value}) 
+    }
+  });
+  let pagination = {
+    pageIndex: params.page || 0,
+    pageSize: params.pageSize || DEFAULT_PAGE_SIZE,
+  };
+  const onColumnFiltersChange = (updater: MRT_Updater<MRT_ColumnFiltersState>) => {
+    if ( ! ( updater instanceof Function ) ) return;
+    const result: RunListParams = {pageSize: pagination.pageSize};
+    const updated = updater(columnFilters);
+    updated.forEach(item => {
+      if ( ! item.id ) return;
+      if ( item.value instanceof Date ) {
+        result.date = formatDay(item.value);
+      } else if ( typeof item.value === "string" || typeof item.value === "number" ) {
+        result[item.id] = item.value
       }
     });
-  }
-  */
-  let filterModel: GridFilterModel = { items: [] };
-  if (params.user) {
-    filterModel = {
-      items: [
+    setter(result);
+  };
+  const onPaginationChange = (updater: MRT_Updater<MRT_PaginationState>) => {
+    if ( ! ( updater instanceof Function ) ) return;
+    pagination = updater(pagination);
+    const result: Partial<RunListParams> = {
+      ...params,
+      page: pagination.pageIndex,
+    };
+    if ( pagination.pageSize != DEFAULT_PAGE_SIZE ) result.pageSize = pagination.pageSize;
+    setter(result);
+  };
+  const query = useRuns(debouncedParams);
+  let data = query.data || [];
+  const table = useMaterialReactTable({
+    ...options,
+    columns,
+    data: data,
+    manualPagination: true,
+    manualFiltering: true,
+    onPaginationChange,
+    rowCount: Infinity,
+    muiPaginationProps: {
+      showLastButton: false,
+    },
+    onColumnFiltersChange,
+    initialState: {
+      ...options.initialState,
+      columnVisibility: {
+        started: false,
+        posted: false,
+      },
+      sorting: [
         {
-          field: "user",
-          value: params.user,
-          operator: "contains",
+          id: "scheduled",
+          desc: true,
         },
       ],
-    };
-  }
-  const onFilterModelChange = (model: GridFilterModel) => {
-    const params: QueryParamConfigMap = {};
-    model.items.forEach((item) => {
-      params[item.field] = item.value || null;
-    });
-    setter(params);
-  };
-  return (
-    <DataGrid
-      columns={columns}
-      rows={query.data || []}
-      loading={query.isLoading || query.isFetching}
-      initialState={{
-        sorting: {
-          sortModel: [
-            {
-              field: "scheduled",
-              sort: "desc",
-            },
-          ],
-        },
-      }}
-      filterMode="client"
-      filterModel={filterModel}
-      onFilterModelChange={onFilterModelChange}
-      paginationMode="server"
-      pageSize={params.pageSize}
-      page={params.page}
-      onPaginationModelChange={setter}
-      getRowClassName={(params: GridRowClassNameParams) => {
-        const status = params.row.status.split(" ").pop();
-        return `status-${status}`;
-      }}
-    />
-  );
+    },
+    state: {
+      columnFilters,
+      pagination,
+      isLoading: query.isLoading || query.isFetching,
+    },
+    muiTableBodyRowProps: ({row}) => {
+      const category = runStatusToThemeCategory(row.original.status);
+      if ( category ) return { className: category };
+      return {};
+    },
+  });
+  if (query.isError) return null;
+  return <MaterialReactTable table={table} />
 }

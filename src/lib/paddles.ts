@@ -9,6 +9,7 @@ import type {
   StatsJobsResponse,
 } from "./paddles.d";
 
+
 const PADDLES_SERVER =
   import.meta.env.VITE_PADDLES_SERVER || "https://paddles.front.sepia.ceph.com";
 
@@ -38,6 +39,8 @@ function getURL(endpoint: string, params?: GetURLParams) {
       case "queued":
         uri += "queued/";
         delete params_[key];
+        break;
+      case "machine_type":
         break;
       default:
         uri += `${key}/${value}/`;
@@ -71,7 +74,7 @@ function useRun(name: string): UseQueryResult<Run> {
   const query = useQuery<Run, Error>(["run", { url }], {
     select: (data: Run) => {
       data.jobs.forEach((item) => {
-        item.id = item.job_id;
+        item.id = item.job_id + "";
       });
       return data;
     },
@@ -107,7 +110,7 @@ function useNodeJobs(name: string, params: GetURLParams): UseQueryResult<NodeJob
   const query = useQuery(["nodeJobs", { url }], {
     select: (data: Job[]) => {
       data.forEach((item) => {
-        item.id = item.job_id;
+        item.id = item.job_id + "";
       });
       const resp: NodeJobs = { 'jobs': data }
       return resp;
@@ -127,8 +130,8 @@ function useNode(name: string): UseQueryResult<Node[]> {
   return query;
 }
 
-function useNodes(): UseQueryResult<Node[]> {
-  const url = new URL("nodes/", PADDLES_SERVER).href
+function useNodes(machine_type: string): UseQueryResult<Node[]> {
+  const url = getURL(`/nodes/`, {machine_type});
   const query = useQuery(["nodes", { url }], {
     select: (data: Node[]) =>
       data.map((item) => {

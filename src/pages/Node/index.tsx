@@ -10,7 +10,7 @@ import type { NodeParams } from "../../lib/paddles.d";
 import { useNode, useNodeJobs } from "../../lib/paddles";
 
 export default function Node() {
-  const [params, setParams] = useQueryParams({
+  const [params, _] = useQueryParams({
     page: NumberParam,
     pageSize: NumberParam,
   });
@@ -35,8 +35,8 @@ export default function Node() {
 
       <div style={{ height: "auto", display: "flex" }}>
         <div style={{ display: "flex", flexWrap: "wrap", marginLeft: "auto", gap: 30 }}>
-          <NodeList query={detailsQuery} params={params} setter={setParams} />
-          <JobList query={jobsQuery} params={params} setter={setParams} pagingMode={"server"}  />
+          <NodeList query={detailsQuery} />
+          <JobList query={jobsQuery} />
         </div>
       </div>
     </div>

@@ -1,128 +1,127 @@
 import type { UseQueryResult } from "@tanstack/react-query";
-import type {
-  DecodedValueMap,
-  QueryParamConfigMap,
-  SetQuery,
-} from "use-query-params";
-import type {
-  GridFilterModel,
-  GridRowClassNameParams,
-  GridValueFormatterParams,
-  GridColDef,
-  GridRenderCellParams,
-} from "@mui/x-data-grid";
+import {
+  useMaterialReactTable,
+  MaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 import Link from '@mui/material/Link';
 
 import type { Node } from "../../lib/paddles.d";
 import { formatDate } from "../../lib/utils";
-import DataGrid from "../DataGrid";
+import useDefaultTableOptions from "../../lib/table";
 
 
-export const columns: GridColDef[] = [
+export const columns: MRT_ColumnDef<Node>[] = [
   {
-    field: "name",
-    width: 100,
-    renderCell: (params: GridRenderCellParams) => {
-      return <Link href={`/nodes/${params.value}/`} color="inherit">{params.value?.split(".")[0]}</Link>;
+    header: "name",
+    accessorKey: "name",
+    size: 100,
+    Cell: ( { row } ) => {
+      const name = row.original.name;
+      return <Link href={`/nodes/${name}/`} color="inherit">{name?.split(".")[0]}</Link>;
     },
   },
   {
-    field: "machine_type",
-    width: 90,
+    header: "machine_type",
+    accessorKey: "machine_type",
+    size: 90,
+    maxSize: 90,
   },
   {
-    field: "up",
-    type: "boolean",
-    width: 70,
+    header: "up",
+    accessorFn: (row: Node) => row.up?.toLocaleString(),
+    size: 70,
+    filterVariant: "select",
   },
   {
-    field: "locked",
-    type: "boolean",
-    width: 70,
+    header: "locked",
+    accessorFn: (row: Node) => row.locked?.toLocaleString(),
+    size: 70,
+    filterVariant: "select",
   },
   {
-    headerName: "locked since",
-    field: "locked_since",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 150,
+    header: "locked since",
+    filterVariant: 'date',
+    sortingFn: "datetime",
+    accessorFn: (row: Node) => formatDate(row.locked_since),
+    size: 150,
+    enableColumnFilter: false,
   },
   {
-    headerName: "locked by",
-    field: "locked_by",
-    width: 175,
+    header: "locked by",
+    accessorKey: "locked_by",
+    size: 175,
+    filterVariant: "select",
   },
   {
-    headerName: "OS type",
-    field: "os_type",
-    width: 90,
+    header: "OS type",
+    accessorFn: (row) => row.os_type || "none",
+    size: 90,
+    filterVariant: "select",
   },
   {
-    headerName: "OS version",
-    field: "os_version",
-    width: 90,
+    header: "OS version",
+    accessorFn: (row) => row.os_version || "none",
+    size: 90,
+    filterVariant: "select",
   },
   {
-    field: "arch",
-    width: 60,
+    header: "arch",
+    accessorKey: "arch",
+    size: 60,
+    filterVariant: "select",
   },
   {
-    field: "description",
-    width: 500,
+    header: "description",
+    accessorKey: "description",
+    size: 500,
   },
 ];
 
 interface NodeListProps {
   query: UseQueryResult<Node[]>;
-  params: DecodedValueMap<QueryParamConfigMap>;
-  setter: SetQuery<QueryParamConfigMap>;
 }
 
-export function nodeRowClass(params: GridRowClassNameParams) {
-  const isUp = params.row.up;
-  const isLocked = params.row.locked;
-  if (!isUp) {
-      return 'node-down';
-  }
-  return isLocked ? 'node-locked' : 'node-available';
-}
-
-export default function NodeList({ query, params, setter }:NodeListProps) {
-  let filterModel: GridFilterModel = { items: [] };
-  if (params.machine_type) {
-    filterModel = {
-      items: [
+export default function NodeList({ query }: NodeListProps) {
+  const options = useDefaultTableOptions<Node>();
+  const data = query.data || [];
+  const table = useMaterialReactTable({
+    ...options,
+    columns,
+    data: data,
+    rowCount: data.length,
+    enableFacetedValues: true,
+    initialState: {
+      ...options.initialState,
+      columnVisibility: {
+        posted: false,
+        updated: false,
+      },
+      pagination: {
+        pageIndex: 0,
+        pageSize: 25,
+      },
+      sorting: [
         {
-          field: "machine_type",
-          value: params.machine_type,
-          operator: "contains",
+          id: "machine_type",
+          desc: false,
+        },
+        {
+          id: "name",
+          desc: false,
         },
       ],
-    };
-  }
-  const onFilterModelChange = (model: GridFilterModel) => {
-    setter({ machine_type: model.items[0].value || null });
-  };
-  return (
-    <DataGrid
-      columns={columns}
-      rows={query.data || []}
-      loading={query.isLoading || query.isFetching}
-      initialState={{
-        sorting: {
-          sortModel: [
-            {
-              field: "name",
-              sort: "asc",
-            },
-          ],
-        },
-      }}
-      hideFooter={true}
-      filterMode="client"
-      filterModel={filterModel}
-      onFilterModelChange={onFilterModelChange}
-      getRowClassName={nodeRowClass}
-    />
-  );
+    },
+    state: {
+      isLoading: query.isLoading || query.isFetching,
+    },
+    muiTableBodyRowProps: ({row}) => {
+      let className = "info";
+      if ( row.original.up === false ) className = "error";
+      else if ( row.original.locked === true ) className = "warning";
+      else if ( row.original.locked === false ) className = "success";
+      return {className};
+    },
+  });
+  return <MaterialReactTable table={table} />
 }
