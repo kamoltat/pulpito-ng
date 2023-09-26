@@ -20,9 +20,12 @@
     "noEmit": true,
     "jsx": "preserve",
     "jsxImportSource": "@emotion/react",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "types": [
+      "./src/vite-env-override.d.ts",
+      "vite/client"
+    ]
   },
-  "types": ["src/vite-env-override.d.ts", "vite/client"],
   "include": [
     "src"
   ]
