@@ -9,6 +9,8 @@
     "@mui/icons-material": "^5.13.7",
     "@mui/material": "^5.13.7",
     "@mui/x-data-grid": "^6.9.1",
+    "@sentry/react": "^7.73.0",
+    "@sentry/tracing": "^7.73.0",
     "@tanstack/react-query": "^4.29.19",
     "@tanstack/react-query-devtools": "^4.29.19",
     "@testing-library/jest-dom": "^5.16.5",
