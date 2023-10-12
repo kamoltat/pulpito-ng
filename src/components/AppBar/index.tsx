@@ -46,7 +46,13 @@ const StyledMuiAppBar = styled(MuiAppBar)((
   }
 }));
 
-export default function AppBar(props) {
+type AppBarProps = {
+  darkMode: Boolean,
+  toggleDarkMode: React.MouseEventHandler<HTMLElement>,
+  setDrawerOpen: Function,
+};
+
+export default function AppBar(props: AppBarProps) {
   const theme = useTheme();
 
   return (
