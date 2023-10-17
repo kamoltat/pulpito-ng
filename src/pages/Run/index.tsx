@@ -38,6 +38,10 @@ const FilterLink = (props: PropsWithChildren<FilterLinkProps>) => (
   </Link>
 );
 
+type StatusLabels = {
+  [key: string]: string;
+}
+
 export default function Run() {
   const [params, setParams] = useQueryParams({
     status: StringParam,
@@ -51,7 +55,12 @@ export default function Run() {
   const data: Run | undefined = query.data;
   const suite = data?.suite;
   const branch = query.data?.branch;
-  const statuses = ["pass", "fail", "dead", "running", "waiting"];
+  const statuses = ["pass", "fail", "dead", "running", "waiting", "queued"];
+  const statusLabels: StatusLabels = {};
+  statuses.forEach(item => {
+    statusLabels[item] = item.charAt(0).toUpperCase() + item.slice(1);
+    if ( data?.results[item] ) statusLabels[item] += ` (${data.results[item]})`;
+  });
   const date = query.data?.scheduled
     ? format(new Date(query.data.scheduled), "yyyy-MM-dd")
     : null;
@@ -84,7 +93,7 @@ export default function Run() {
         >
           All
         </Button>
-        {statuses.map((item) => (
+        {statuses.filter(item => data?.results[item]).map((item) => (
           <Button
             key={item}
             onClick={() => {
@@ -92,7 +101,7 @@ export default function Run() {
             }}
             variant={params.status === item ? "contained" : "outlined"}
           >
-            {item.charAt(0).toUpperCase() + item.slice(1)}
+            {statusLabels[item]}
           </Button>
         ))}
       </ButtonGroup>

@@ -26,12 +26,17 @@ export type Job = {
   scheduled: string;
 };
 
+export type RunResults = {
+  [key: string]: number | string;
+}
+
 export type Run = {
   name: string;
   branch: string;
   suite: string;
   jobs: Job[];
   scheduled: string;
+  results: RunResults;
 };
 
 export type Node = {
