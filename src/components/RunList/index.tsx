@@ -110,6 +110,11 @@ const columns: GridColDef[] = [
     valueGetter: resultsGetter,
     width: 60,
   },
+  {
+    field: "waiting",
+    valueGetter: resultsGetter,
+    width: 60,
+  },
 ];
 
 interface RunListProps {
