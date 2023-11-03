@@ -10,6 +10,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
 import Login from "../Login";
+import RefreshButton from "../RefreshButton";
 
 
 const PREFIX = 'index';
@@ -46,7 +47,13 @@ const StyledMuiAppBar = styled(MuiAppBar)((
   }
 }));
 
-export default function AppBar(props) {
+type AppBarProps = {
+  darkMode: Boolean,
+  toggleDarkMode: React.MouseEventHandler<HTMLElement>,
+  setDrawerOpen: Function,
+};
+
+export default function AppBar(props: AppBarProps) {
   const theme = useTheme();
 
   return (
@@ -86,6 +93,9 @@ export default function AppBar(props) {
         </div>
         <IconButton onClick={props.toggleDarkMode} size="large">
           {props.darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+        <IconButton color="inherit" aria-label="refresh">
+          <RefreshButton />
         </IconButton>
       </Toolbar>
     </StyledMuiAppBar>
