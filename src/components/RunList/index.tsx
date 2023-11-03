@@ -63,9 +63,9 @@ const columns: GridColDef[] = [
     field: "",
     valueGetter: (params: GridValueGetterParams) => {
       const start = Date.parse(params.row.started);
-      const end = Date.parse(params.row.posted);
+      const end = Date.parse(params.row.updated);
       if (!end || !start) return null;
-      return Math.round((start - end) / 1000);
+      return Math.round((end - start) / 1000);
     },
     valueFormatter: (row: GridValueFormatterParams) => formatDuration(row.value),
     width: 70,
