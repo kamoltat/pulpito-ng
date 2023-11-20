@@ -14,12 +14,20 @@ import {
   ThemeProvider,
   StyledEngineProvider,
 } from "@mui/material/styles";
+import * as Sentry from "@sentry/react";
+import { BrowserTracing } from "@sentry/tracing";
 
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 import type { QueryKey } from "./lib/paddles.d";
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  integrations: [new BrowserTracing()],
+  tracesSampleRate: 1.0,
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
