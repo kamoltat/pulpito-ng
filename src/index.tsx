@@ -56,14 +56,12 @@ function useDarkMode(): [boolean, Function] {
   const systemDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [state, setState] = React.useState({
     system: systemDarkMode,
+    user: localStorage.getItem("theme") === "dark",
   } as DarkModeState);
 
   function setDarkMode(value: boolean) {
-    const newState = { ...state, user: value };
-    if (value !== state.user) {
-      setState(newState);
-    }
-    setState(newState);
+    localStorage.setItem("theme", value? "dark" : "light");
+    setState({ ...state, user: value });
   }
   const darkMode = state.user === undefined ? systemDarkMode : state.user;
   return [darkMode, setDarkMode];
