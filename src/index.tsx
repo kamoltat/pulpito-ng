@@ -24,6 +24,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 import type { QueryKey } from "./lib/paddles.d";
+import getThemeOptions from "./lib/theme";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -75,16 +76,11 @@ export default function Root() {
   };
   const theme = React.useMemo(() => {
     const paletteType = darkMode ? "dark" : "light";
-    const theme = createTheme({ palette: { mode: paletteType } });
-    if (darkMode) {
-      theme.palette.background.default = "#181818";
-      theme.palette.background.paper = "#303030";
-    }
+    const theme = createTheme({
+      ...getThemeOptions(paletteType),
+    });
     return theme;
   }, [darkMode]);
-  if (darkMode === undefined) {
-    return null;
-  }
   return (
     <React.StrictMode>
       <StyledEngineProvider injectFirst>
