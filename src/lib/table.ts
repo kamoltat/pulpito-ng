@@ -32,12 +32,30 @@ export default function useDefaultTableOptions<TData extends MRT_RowData>(): Par
     },
     muiTableBodyProps: {
       sx: {
-        'tr td': {padding: '2px'},
-        'tr td:nth-of-type(1)': {paddingLeft: '8px'},
-        'tr.error td': {backgroundColor: palette.error.main},
-        'tr.warning td': {backgroundColor: palette.warning.main},
+        'tr td': {
+          paddingBottom: 0,
+          paddingRight: 0,
+          paddingTop: 0,
+        },
+        'tr td .MuiButtonBase-root': {color: "inherit"},
+        'tr.error td': {
+          backgroundColor: palette.error.main,
+          color: palette.error.contrastText,
+        },
+        'tr.warning td': {
+          backgroundColor: palette.warning.main,
+          color: palette.error.contrastText,
+        },
         'tr.info td': {backgroundColor: palette.info.main},
         'tr.success td': {backgroundColor: palette.success.main},
+        'tr.empty': {display: 'none'},
+        'td.Mui-TableBodyCell-DetailPanel': {width: "100%", paddingLeft: 5},
+        // The following two items hide button and corresponding empty "row"
+        // for items whose detail panel is empty. If the library adds a way to
+        // avoid populating detail panels on a per-row basis.
+        // :has is *almost* supported everywhere: https://caniuse.com/css-has
+        'tr:has(td):has(.Mui-TableBodyCell-DetailPanel:empty)': {height: "0px"},
+        'tr:has(+ tr.empty) button': {display: "none"},
         '@media (prefers-color-scheme: dark)': {
           'tr:hover td': {filter: "brightness(85%)"},
         },
@@ -46,11 +64,10 @@ export default function useDefaultTableOptions<TData extends MRT_RowData>(): Par
         },
       },
     },
-    muiTableBodyRowProps: ({row}) => {
-      const category = statusToThemeCategory(row.original.status);
-      return {
-        className: category,
-      }
+    muiTableBodyRowProps: {
+      sx: {
+        td: {color: theme.palette.primary.contrastText},
+      },
     },
     muiTablePaperProps: {
       sx: {

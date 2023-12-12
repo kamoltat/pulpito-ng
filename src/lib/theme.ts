@@ -5,7 +5,7 @@ import {
 
 export default function getThemeOptions(mode: "dark" | "light"): ThemeOptions {
   const darkShade = 200;
-  const lightShade = 300;
+  const lightShade = 100;
   return mode === "dark"? {
     palette: {
       mode: "dark",

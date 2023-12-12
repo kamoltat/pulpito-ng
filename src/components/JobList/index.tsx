@@ -1,9 +1,13 @@
+import { ReactNode } from "react";
 import DescriptionIcon from "@mui/icons-material/Description";
 import Tooltip from '@mui/material/Tooltip';
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 import {
   useMaterialReactTable,
   MaterialReactTable,
   type MRT_ColumnDef,
+  type MRT_Row,
 } from 'material-react-table';
 import type { UseQueryResult } from "@tanstack/react-query";
 import { type Theme } from "@mui/material/styles";
@@ -176,6 +180,34 @@ function jobStatusToThemeCategory(status: string): keyof Theme["palette"] {
   }
 };
 
+type JobDetailPanelProps = {
+  row: MRT_Row<Job>;
+}
+
+function JobDetailPanel(props: JobDetailPanelProps): ReactNode {
+  const failure_reason = props.row.original.failure_reason;
+  if ( ! failure_reason ) return null;
+  return (
+    <Box
+      sx={{
+        borderLeft: 1,
+        borderColor: (theme) => theme.palette.grey[800],
+        padding: 1,
+      }}
+    >
+      <Typography
+        variant="subtitle2"
+      >
+        Failure Reason:
+      </Typography>
+      <Typography
+        variant="caption"
+      >
+        <code>{failure_reason}</code>
+      </Typography>
+    </Box>
+  )
+};
 
 type JobListProps = {
   query: UseQueryResult<Run> | UseQueryResult<NodeJobs>;
@@ -212,6 +244,11 @@ export default function JobList({ query }: JobListProps) {
     state: {
       isLoading: query.isLoading || query.isFetching,
     },
+    renderDetailPanel: JobDetailPanel,
+    muiTableBodyRowProps: ({row, isDetailPanel}) => {
+      if ( isDetailPanel ) {
+        return row.original.failure_reason? {} : {className: "empty"};
+      }
       const category = jobStatusToThemeCategory(row.original.status);
       if ( category ) return { className: category };
       return {};
