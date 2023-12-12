@@ -153,7 +153,7 @@ function useStatsNodeLocks(params: GetURLParams): UseQueryResult<StatsLocksRespo
   const query = useQuery(["statsLocks", { url }], {
     select: (data: Node[]) => {
       let users = new Map();
-      data.map((node) => {
+      data.forEach((node) => {
         let owner: string = node["locked"] ? (node["locked_by"] || "-") : "(free)";
         let mtype: string = node["machine_type"] || "None";
         let mtype_dict = users.get(owner) || new Map();

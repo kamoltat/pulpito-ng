@@ -47,7 +47,7 @@ function useUserData(): Map<string, string> {
         const cookie_ = cookie.replace(/\\073/g, ';');
         let cookieMap: Map<string, string> = new Map();
         let cookieSegments = cookie_.split(";");
-        cookieSegments.map((cookie: string) => {
+        cookieSegments.forEach((cookie: string) => {
             let [key, value] = cookie.split("=");
             cookieMap.set(key.trim(), value.trim());
         })

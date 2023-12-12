@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, MouseEventHandler } from "react";
 
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
 import AppBar from "./components/AppBar";
@@ -18,7 +18,7 @@ import "./App.css";
 
 type AppProps = {
   darkMode: boolean;
-  toggleDarkMode: Function;
+  toggleDarkMode: MouseEventHandler<HTMLElement>;
 };
 
 function App(props: AppProps) {
