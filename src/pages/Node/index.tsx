@@ -33,8 +33,8 @@ export default function Node() {
         Node: {name}
       </Typography>
 
-      <div style={{ height: "auto", display: "flex" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", marginLeft: "auto", gap: 30 }}>
+      <div>
+        <div>
           <NodeList query={detailsQuery} />
           <JobList query={jobsQuery} />
         </div>
