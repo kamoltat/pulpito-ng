@@ -28,15 +28,15 @@ export const columns: MRT_ColumnDef<Node>[] = [
     maxSize: 90,
   },
   {
-    header: "up",
+    header: "🔌",
     accessorFn: (row: Node) => row.up?.toLocaleString(),
-    size: 70,
+    size: 50,
     filterVariant: "select",
   },
   {
-    header: "locked",
+    header: "🔒",
     accessorFn: (row: Node) => row.locked?.toLocaleString(),
-    size: 70,
+    size: 40,
     filterVariant: "select",
   },
   {
@@ -44,25 +44,25 @@ export const columns: MRT_ColumnDef<Node>[] = [
     filterVariant: 'date',
     sortingFn: "datetime",
     accessorFn: (row: Node) => formatDate(row.locked_since),
-    size: 150,
+    size: 90,
     enableColumnFilter: false,
   },
   {
     header: "locked by",
     accessorKey: "locked_by",
-    size: 175,
+    size: 120,
     filterVariant: "select",
   },
   {
     header: "OS type",
     accessorFn: (row) => row.os_type || "none",
-    size: 90,
+    size: 70,
     filterVariant: "select",
   },
   {
-    header: "OS version",
+    header: "OS ver.",
     accessorFn: (row) => row.os_version || "none",
-    size: 90,
+    size: 70,
     filterVariant: "select",
   },
   {
@@ -85,6 +85,13 @@ interface NodeListProps {
 export default function NodeList({ query }: NodeListProps) {
   const options = useDefaultTableOptions<Node>();
   const data = query.data || [];
+  if ( data.length === 1 ) {
+    options.enableFilters = false;
+    options.enablePagination = false;
+    options.enableTableFooter = false;
+    options.enableTopToolbar = false;
+    options.enableBottomToolbar = false;
+  }
   const table = useMaterialReactTable({
     ...options,
     columns,
@@ -96,6 +103,8 @@ export default function NodeList({ query }: NodeListProps) {
       columnVisibility: {
         posted: false,
         updated: false,
+        name: data.length > 1? true : false,
+        machine_type: data.length > 1? true : false,
       },
       pagination: {
         pageIndex: 0,
