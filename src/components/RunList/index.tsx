@@ -12,6 +12,7 @@ import {
   type MRT_PaginationState,
   type MRT_Updater,
   type MRT_ColumnFiltersState,
+  type MRT_TableOptions,
 } from 'material-react-table';
 import { type Theme } from "@mui/material/styles";
 import { parse } from "date-fns";
@@ -172,10 +173,11 @@ type RunListParams = {
 type RunListProps = {
   params: DecodedValueMap<QueryParamConfigMap>;
   setter: SetQuery<QueryParamConfigMap>;
+  tableOptions?: Partial<MRT_TableOptions<Run>>;
 }
 
 export default function RunList(props: RunListProps) {
-  const { params, setter } = props;
+  const { params, setter, tableOptions } = props;
   const options = useDefaultTableOptions<Run>();
   const debouncedParams = useDebounce(params, 500);
   const columnFilters: MRT_ColumnFiltersState = [];
@@ -256,6 +258,7 @@ export default function RunList(props: RunListProps) {
       if ( category ) return { className: category };
       return {};
     },
+    ...tableOptions,
   });
   if (query.isError) return null;
   return <MaterialReactTable table={table} />
