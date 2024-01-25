@@ -193,6 +193,7 @@ function JobDetailPanel(props: JobDetailPanelProps): ReactNode {
         borderLeft: 1,
         borderColor: (theme) => theme.palette.grey[800],
         padding: 1,
+        color: (theme) => theme.palette.text.primary,
       }}
     >
       <Typography

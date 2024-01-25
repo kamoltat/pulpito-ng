@@ -33,9 +33,13 @@ export default function useDefaultTableOptions<TData extends MRT_RowData>(): Par
     muiTableBodyProps: {
       sx: {
         'tr td': {
-          paddingBottom: 0,
+          paddingBottom: '5px',
           paddingRight: 0,
-          paddingTop: 0,
+          paddingTop: '5px',
+          color: "black",
+        },
+        'tr td:has(svg)': {
+          padding: 0,
         },
         'tr td .MuiButtonBase-root': {color: "inherit"},
         'tr.error td': {
