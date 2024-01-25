@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import DescriptionIcon from "@mui/icons-material/Description";
-import Tooltip from '@mui/material/Tooltip';
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {
@@ -28,20 +27,6 @@ const columns: MRT_ColumnDef<Job>[] = [
     accessorKey: "status",
     size: 120,
     filterVariant: "select",
-    // filterSelectOptions: ["pass", "fail", "dead", "running", "waiting", "unknown"],
-    Cell: ({ row }) => {
-      let failure_reason = row.original.failure_reason || "";
-      const max_length = 800;
-      const ellipsis = "...";
-      if ( failure_reason.length > max_length ) {
-        failure_reason = failure_reason.substring(0, max_length - ellipsis.length) + ellipsis;
-      }
-      return (
-        <Tooltip title={failure_reason}>
-          <span>{row.original.status}</span>
-        </Tooltip>
-      );
-    }
   },
   {
     header: "links",
