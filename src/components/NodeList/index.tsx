@@ -84,13 +84,24 @@ interface NodeListProps {
 
 export default function NodeList({ query }: NodeListProps) {
   const options = useDefaultTableOptions<Node>();
+  options.state = {};
+  options.state.columnVisibility = {};
   const data = query.data || [];
-  if ( data.length === 1 ) {
+  if ( data.length <= 1 ) {
     options.enableFilters = false;
     options.enablePagination = false;
     options.enableTableFooter = false;
     options.enableTopToolbar = false;
     options.enableBottomToolbar = false;
+    options.state.columnVisibility = {
+      name: false,
+    };
+  }
+  if ( new Set(data.map(node => node.machine_type)).size === 1 ) {
+    options.state.columnVisibility.machine_type = false;
+  }
+  if ( new Set(data.map(node => node.arch)).size === 1 ) {
+    options.state.columnVisibility.arch = false;
   }
   const table = useMaterialReactTable({
     ...options,
@@ -100,12 +111,6 @@ export default function NodeList({ query }: NodeListProps) {
     enableFacetedValues: true,
     initialState: {
       ...options.initialState,
-      columnVisibility: {
-        posted: false,
-        updated: false,
-        name: data.length > 1? true : false,
-        machine_type: data.length > 1? true : false,
-      },
       pagination: {
         pageIndex: 0,
         pageSize: 25,
@@ -122,6 +127,7 @@ export default function NodeList({ query }: NodeListProps) {
       ],
     },
     state: {
+      ...options.state,
       isLoading: query.isLoading || query.isFetching,
     },
     muiTableBodyRowProps: ({row}) => {
