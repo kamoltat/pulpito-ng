@@ -100,7 +100,10 @@ function useSuites() {
 
 function useMachineTypes() {
   const url = getURL("/nodes/machine_types/");
-  return useQuery(["machine_types", { url }]);
+  return useQuery(["machine_types", { url }], {
+    cacheTime: 60 * 60 * 24 * 30,
+    staleTime: 60 * 60 * 24 * 30,
+  });
 }
 
 function useNodeJobs(name: string, params: GetURLParams): UseQueryResult<NodeJobs> {
