@@ -28,6 +28,7 @@ export default function useDefaultTableOptions<TData extends MRT_RowData>(): Par
       sx: {
         color: "black",
         fontSize: "0.75rem",
+        whiteSpace: "normal",
       }
     },
     muiTableBodyProps: {
