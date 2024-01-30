@@ -15,7 +15,7 @@ export const columns: MRT_ColumnDef<Node>[] = [
   {
     header: "name",
     accessorKey: "name",
-    size: 100,
+    size: 40,
     Cell: ( { row } ) => {
       const name = row.original.name;
       return <Link href={`/nodes/${name}/`} color="inherit">{name?.split(".")[0]}</Link>;
@@ -30,13 +30,13 @@ export const columns: MRT_ColumnDef<Node>[] = [
   {
     header: "🔌",
     accessorFn: (row: Node) => row.up?.toLocaleString(),
-    size: 50,
+    size: 30,
     filterVariant: "select",
   },
   {
     header: "🔒",
     accessorFn: (row: Node) => row.locked?.toLocaleString(),
-    size: 40,
+    size: 30,
     filterVariant: "select",
   },
   {
@@ -44,37 +44,37 @@ export const columns: MRT_ColumnDef<Node>[] = [
     filterVariant: 'date',
     sortingFn: "datetime",
     accessorFn: (row: Node) => formatDate(row.locked_since),
-    size: 90,
+    size: 55,
     enableColumnFilter: false,
   },
   {
     header: "locked by",
     accessorKey: "locked_by",
-    size: 120,
+    size: 60,
     filterVariant: "select",
   },
   {
     header: "OS type",
     accessorFn: (row) => row.os_type || "none",
-    size: 70,
+    size: 40,
     filterVariant: "select",
   },
   {
     header: "OS ver.",
     accessorFn: (row) => row.os_version || "none",
-    size: 70,
+    size: 40,
     filterVariant: "select",
   },
   {
     header: "arch",
     accessorKey: "arch",
-    size: 60,
+    size: 50,
     filterVariant: "select",
   },
   {
     header: "description",
     accessorKey: "description",
-    size: 500,
+    size: 200,
   },
 ];
 
