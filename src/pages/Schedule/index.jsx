@@ -21,7 +21,11 @@ import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
 import Tooltip from '@mui/material/Tooltip';
 import InfoIcon from '@mui/icons-material/Info';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useUserData, doSchedule } from '../../lib/teuthologyAPI';
+import { useMutation } from "@tanstack/react-query";
 
 export default function Schedule() {
   const keyOptions =
@@ -85,13 +89,65 @@ export default function Schedule() {
   const [rowIndex, setRowIndex] = useLocalStorage("rowIndex", -1);
   const [commandBarValue, setCommandBarValue] = useState([]);
   const userData = useUserData();
-  let commandValue = {};
+
+  const [open, setOpenSuccess] = useState(false);
+  const [openErr, setOpenErr] = useState(false);
+
+  const handleOpenSuccess = () => {
+    setOpenSuccess(true);
+  };
+  const handleOpenErr = () => {
+    setOpenErr(true);
+  };
+
+  const handleCloseSuccess = () => {
+    setOpenSuccess(false);
+  };
+  const handleCloseErr = () => {
+    setOpenErr(false);
+  };
+
+  const clickRun = useMutation({
+    mutationFn: async (commandValue) => {
+      return await doSchedule(commandValue);
+    },
+    onSuccess: () => {
+      handleOpenSuccess();
+    },
+    onError: () => {
+      handleOpenErr();
+    }
+  })
+
+  const clickDryRun = useMutation({
+    mutationFn: async (commandValue) => {
+      return await doSchedule(commandValue);
+    },
+    onSuccess: () => {
+      handleOpenSuccess();
+    },
+    onError: () => {
+      handleOpenErr();
+    }
+  })
+
+  const clickForcePriority = useMutation({
+    mutationFn: async (commandValue) => {
+      return await doSchedule(commandValue);
+    },
+    onSuccess: () => {
+      handleOpenSuccess();
+    },
+    onError: () => {
+      handleOpenErr();
+    }
+  })
 
   useEffect(() => {
     setCommandBarValue(rowData);
   }, [rowData])
 
-  function getCommandValue() {
+  function getCommandValue(dry_run) {
     let retCommandValue = {};
     commandBarValue.map((data) => {
       if (data.checked) {
@@ -105,13 +161,13 @@ export default function Schedule() {
     } else {
       retCommandValue['--user'] = userData.get("username");
     }
+    if (dry_run) {
+      retCommandValue['--dry-run'] = true;
+    } else {
+      retCommandValue['--dry-run'] = false;
+    }
     return retCommandValue;
   }
-
-  const handleRun = () => {
-    let commandValue = getCommandValue();
-    doSchedule(commandValue);
-  };
 
   const handleDryRun = () => {
     let commandValue = getCommandValue();
@@ -207,13 +263,38 @@ export default function Schedule() {
         </Tooltip>
         <div style={{ display: "flex", paddingLeft: "20px" }}>
           <Tooltip title="Execute command with regards to the --priority value" arrow>
-            <Button // Run Button
+            <Snackbar open={open} onClose={handleCloseSuccess}>
+              <Alert
+                onClose={handleCloseSuccess}
+                severity="success"
+                variant="filled"
+                sx={{ width: '100%' }}
+              >
+                Run Scheduled!
+              </Alert>
+            </Snackbar>
+            {clickRun.isLoading ? (
+              <CircularProgress />
+            ) : <Button // Run Button
               style={{ height: "50px", width: "100px", backgroundColor: "#33b249", color: "#fff" }}
               variant="contained"
-              onClick={handleRun}
+              onClick={() => {
+                clickRun.mutate(getCommandValue(false)
+                )
+              }}
             >
               Run
-            </Button>
+            </Button>}
+            <Snackbar open={openErr} onClose={handleCloseErr}>
+              <Alert
+                onClose={handleCloseErr}
+                severity="error"
+                variant="filled"
+                sx={{ width: '100%' }}
+              >
+                Failed to Schedule Runs
+              </Alert>
+            </Snackbar>
           </Tooltip>
           <Tooltip title="Execute command without regards to the --priority value " arrow>
             <Button // Force Priority Button
@@ -226,13 +307,16 @@ export default function Schedule() {
             </Button>
           </Tooltip>
           <Tooltip title="Simulate the execution of the command to see what kind of jobs are scheduled, how many there are and etc." arrow>
-            <Button // Dry Run Button
+            {clickDryRun.isLoading ? <CircularProgress /> : (<Button // Dry Run Button
               style={{ height: "50px", width: "100px", backgroundColor: "#1976D2", color: "#fff", marginLeft: "20px" }}
               variant="contained"
-              onClick={handleDryRun}
+              onClick={() => {
+                clickDryRun.mutate(getCommandValue(true)
+                )
+              }}
             >
               Dry Run
-            </Button>
+            </Button>)}
           </Tooltip>
         </div>
       </div>
