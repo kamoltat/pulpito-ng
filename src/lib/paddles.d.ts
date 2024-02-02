@@ -39,9 +39,12 @@ export type Job = {
   status: JobStatus;
   failure_reason: string;
   targets: Node[];
+  roles: NodeRoles[];
   os_type: string;
   os_version: string;
 };
+
+export type NodeRoles = string[];
 
 export type RunResults = {
   queued: number;

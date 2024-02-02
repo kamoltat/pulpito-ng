@@ -147,7 +147,7 @@ const columns: MRT_ColumnDef<Job>[] = [
     header: "nodes",
     accessorKey: "nodes",
     accessorFn: (row: Job) => {
-      return Object.keys(row.targets || {}).length || 0;
+      return Object.keys(row.targets || row.roles || {}).length || 0;
     },
     size: 85,
   },
