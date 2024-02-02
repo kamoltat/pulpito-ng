@@ -197,9 +197,10 @@ function JobDetailPanel(props: JobDetailPanelProps): ReactNode {
 
 type JobListProps = {
   query: UseQueryResult<Run> | UseQueryResult<NodeJobs>;
+  sortMode?: "time" | "id";
 }
 
-export default function JobList({ query }: JobListProps) {
+export default function JobList({ query, sortMode }: JobListProps) {
   const options = useDefaultTableOptions<Job>();
   const data = query.data?.jobs || [];
   const table = useMaterialReactTable({
@@ -213,7 +214,7 @@ export default function JobList({ query }: JobListProps) {
       columnVisibility: {
         posted: false,
         updated: false,
-        runtime: false,
+        duration: false,
         waiting: false,
       },
       pagination: {
@@ -222,8 +223,8 @@ export default function JobList({ query }: JobListProps) {
       },
       sorting: [
         {
-          id: "job_id",
-          desc: false,
+          id: sortMode === "time"? "started" : "job_id",
+          desc: true,
         },
       ],
     },

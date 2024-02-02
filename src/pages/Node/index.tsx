@@ -36,7 +36,7 @@ export default function Node() {
       <div>
         <div>
           <NodeList query={detailsQuery} />
-          <JobList query={jobsQuery} />
+          <JobList query={jobsQuery} sortMode={"time"} />
         </div>
       </div>
     </div>
