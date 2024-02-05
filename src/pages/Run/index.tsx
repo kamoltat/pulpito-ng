@@ -3,12 +3,10 @@ import { useQueryParams, StringParam, NumberParam } from "use-query-params";
 import { styled } from "@mui/material/styles";
 import { useParams } from "react-router-dom";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import { format } from "date-fns";
 import { Helmet } from "react-helmet";
 
-import type { Run, RunParams } from "../../lib/paddles.d";
+import type { Run as Run_, RunParams } from "../../lib/paddles.d";
 
 import { useRun } from "../../lib/paddles";
 import JobList from "../../components/JobList";
@@ -38,10 +36,6 @@ const FilterLink = (props: PropsWithChildren<FilterLinkProps>) => (
   </Link>
 );
 
-type StatusLabels = {
-  [key: string]: string;
-}
-
 export default function Run() {
   const [params, setParams] = useQueryParams({
     status: StringParam,
@@ -52,15 +46,9 @@ export default function Run() {
   const query = useRun(name === undefined ? "" : name);
   if (query === null) return <Typography>404</Typography>;
   if (query.isError) return null;
-  const data: Run | undefined = query.data;
+  const data: Run_ | undefined = query.data;
   const suite = data?.suite;
   const branch = query.data?.branch;
-  const statuses = ["pass", "fail", "dead", "running", "waiting", "queued"];
-  const statusLabels: StatusLabels = {};
-  statuses.forEach(item => {
-    statusLabels[item] = item.charAt(0).toUpperCase() + item.slice(1);
-    if ( data?.results[item] ) statusLabels[item] += ` (${data.results[item]})`;
-  });
   const date = query.data?.scheduled
     ? format(new Date(query.data.scheduled), "yyyy-MM-dd")
     : null;
@@ -84,28 +72,7 @@ export default function Run() {
           date
         </FilterLink>
       </div>
-      <ButtonGroup style={{ display: "flex", justifyContent: "center" }}>
-        <Button
-          onClick={() => {
-            setParams({ status: null });
-          }}
-          variant={params.status ? "outlined" : "contained"}
-        >
-          All
-        </Button>
-        {statuses.filter(item => data?.results[item]).map((item) => (
-          <Button
-            key={item}
-            onClick={() => {
-              setParams({ status: item });
-            }}
-            variant={params.status === item ? "contained" : "outlined"}
-          >
-            {statusLabels[item]}
-          </Button>
-        ))}
-      </ButtonGroup>
-      <JobList query={query} params={params} setter={setParams} pagingMode={"client"} />
+      <JobList query={query} params={params} setter={setParams} />
     </Root>
   );
 }

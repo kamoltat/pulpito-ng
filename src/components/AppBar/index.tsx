@@ -1,6 +1,5 @@
 import { Link as RouterLink } from "react-router-dom";
 import { styled } from '@mui/material/styles';
-import { useTheme } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -54,8 +53,6 @@ type AppBarProps = {
 };
 
 export default function AppBar(props: AppBarProps) {
-  const theme = useTheme();
-
   return (
     <StyledMuiAppBar position="static" className={classes.appBar}>
       <Toolbar>
@@ -80,7 +77,7 @@ export default function AppBar(props: AppBarProps) {
           <RouterLink
             to="/"
             style={{
-              color: theme.palette.text.primary,
+              color: "inherit",
               textDecoration: "none",
               marginLeft: "12px",
             }}

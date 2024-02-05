@@ -5,6 +5,7 @@ export default function Link(props) {
     <MuiLink
       href={props.to}
       target="_blank"
+      color={props.color}
       sx={props.sx}
     >
       {props.children}

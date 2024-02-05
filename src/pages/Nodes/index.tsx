@@ -8,15 +8,16 @@ import NodeList from "../../components/NodeList";
 import { useMachineTypes } from "../../lib/paddles";
 import { useNodes } from "../../lib/paddles";
 
+
 export default function Nodes() {
   const [params, setParams] = useQueryParams({
     machine_type: StringParam,
   });
   const { machine_type } = params;
-  const query = useNodes();
+  const query = useNodes(machine_type || "");
   if (query.isError) return null;
 
-  
+ 
   return (
     <div>
       <Helmet>
@@ -41,7 +42,7 @@ export default function Nodes() {
           />
         </div>
       </div>
-      <NodeList query={query} params={params} setter={setParams} />
+      <NodeList query={query} />
     </div>
   );
 }

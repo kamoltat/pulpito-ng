@@ -14,6 +14,8 @@ import {
   ThemeProvider,
   StyledEngineProvider,
 } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 
@@ -22,6 +24,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
 import type { QueryKey } from "./lib/paddles.d";
+import getThemeOptions from "./lib/theme";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
@@ -53,14 +56,12 @@ function useDarkMode(): [boolean, Function] {
   const systemDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [state, setState] = React.useState({
     system: systemDarkMode,
+    user: localStorage.getItem("theme") === "dark",
   } as DarkModeState);
 
   function setDarkMode(value: boolean) {
-    const newState = { ...state, user: value };
-    if (value !== state.user) {
-      setState(newState);
-    }
-    setState(newState);
+    localStorage.setItem("theme", value? "dark" : "light");
+    setState({ ...state, user: value });
   }
   const darkMode = state.user === undefined ? systemDarkMode : state.user;
   return [darkMode, setDarkMode];
@@ -73,31 +74,28 @@ export default function Root() {
   };
   const theme = React.useMemo(() => {
     const paletteType = darkMode ? "dark" : "light";
-    const theme = createTheme({ palette: { mode: paletteType } });
-    if (darkMode) {
-      theme.palette.background.default = "#181818";
-      theme.palette.background.paper = "#303030";
-    }
+    const theme = createTheme({
+      ...getThemeOptions(paletteType),
+    });
     return theme;
   }, [darkMode]);
-  if (darkMode === undefined) {
-    return null;
-  }
   return (
     <React.StrictMode>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
-          <CookiesProvider>
-            <Router>
-              <QueryParamProvider adapter={ReactRouter6Adapter}>
-                <CssBaseline />
-                <QueryClientProvider client={queryClient}>
-                  <ReactQueryDevtools initialIsOpen={false} />
-                  <App darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-                </QueryClientProvider>
-              </QueryParamProvider>
-            </Router>
-          </CookiesProvider>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <CookiesProvider>
+              <Router>
+                <QueryParamProvider adapter={ReactRouter6Adapter}>
+                  <CssBaseline />
+                  <QueryClientProvider client={queryClient}>
+                    <ReactQueryDevtools initialIsOpen={false} />
+                    <App darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+                  </QueryClientProvider>
+                </QueryParamProvider>
+              </Router>
+            </CookiesProvider>
+          </LocalizationProvider>
         </ThemeProvider>
       </StyledEngineProvider>
     </React.StrictMode>

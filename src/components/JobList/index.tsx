@@ -1,71 +1,54 @@
+import { ReactNode } from "react";
 import DescriptionIcon from "@mui/icons-material/Description";
-import Tooltip from '@mui/material/Tooltip';
-import type {
-  GridCellParams,
-  GridFilterModel,
-  GridRowClassNameParams,
-  GridValueFormatterParams,
-  GridValueGetterParams,
-  GridRenderCellParams,
-  GridColDef,
-} from "@mui/x-data-grid";
-import type {
-  DecodedValueMap,
-  QueryParamConfigMap,
-  SetQuery,
-} from "use-query-params";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import {
+  useMaterialReactTable,
+  MaterialReactTable,
+  type MRT_ColumnDef,
+  type MRT_Row,
+} from 'material-react-table';
 import type { UseQueryResult } from "@tanstack/react-query";
+import { type Theme } from "@mui/material/styles";
 
 import { formatDate, formatDuration } from "../../lib/utils";
-import DataGrid from "../../components/DataGrid";
 import IconLink from "../../components/IconLink";
-import type { Run, NodeJobs } from "../../lib/paddles.d";
+import Link from "../../components/Link";
+import type { Job, NodeJobs, Run } from "../../lib/paddles.d";
 import { dirName } from "../../lib/utils";
+import useDefaultTableOptions from "../../lib/table";
 
 import sentryIcon from "./assets/sentry.svg";
 
 
-const columns: GridColDef[] = [
+const columns: MRT_ColumnDef<Job>[] = [
   {
-    field: "status",
-    width: 85,
-    cellClassName: (params: GridCellParams) => `status-${params.value}`,
-    renderCell: (params: GridRenderCellParams) => {
-      let failure_reason = params.row.failure_reason || "";
-      const max_length = 800;
-      const ellipsis = "...";
-      if ( failure_reason.length > max_length ) {
-        failure_reason = failure_reason.substring(0, max_length - ellipsis.length) + ellipsis;
-      }
-      return (
-        <div>
-        <Tooltip title={failure_reason}>
-          <p>{params.value}</p>
-        </Tooltip>
-        </div>
-      );
-    }
+    header: "status",
+    accessorKey: "status",
+    size: 120,
+    filterVariant: "select",
   },
   {
-    field: "links",
-    width: 75,
-    valueGetter: (params: GridValueGetterParams) => {
-      return {
-        log: dirName(params.row.log_href),
-        sentry: params.row.sentry_event,
-      };
-    },
-    renderCell: (params: GridRenderCellParams) => {
+    header: "links",
+    id: "links",
+    size: 75,
+    Cell: ({ row }) => {
+      const log_url = row.original.log_href;
+      const sentry_url = row.original.sentry_event;
       return (
         <div>
-          {params.value.log ? (
-            <IconLink to={params.value.log}>
-              <DescriptionIcon />
+          {log_url? (
+            <IconLink to={dirName(log_url)}>
+              <DescriptionIcon fontSize="small" />
             </IconLink>
           ) : null}
-          {params.value.sentry ? (
-            <IconLink to={params.value.sentry}>
-              <img src={`${sentryIcon}`} alt="Sentry icon" />
+          {sentry_url ? (
+            <IconLink to={sentry_url}>
+              <img
+                src={`${sentryIcon}`}
+                alt="Sentry icon"
+                style={{height: '20px', width: '20px'}}
+              />
             </IconLink>
           ) : null}
         </div>
@@ -73,141 +56,191 @@ const columns: GridColDef[] = [
     },
   },
   {
-    field: "job_id",
-    headerName: "job ID",
-    renderCell: (params: GridRenderCellParams) => {
+    header: "job ID",
+    accessorKey: "job_id",
+    size: 110,
+    Cell: ({ row }) => {
       return (
-        <IconLink to={`/runs/${params.row.name}/jobs/${params.value}`}>
-          {params.value}
-        </IconLink>
+        <Link
+          to={`/runs/${row.original.name}/jobs/${row.original.job_id}`}
+          color="inherit"
+        >
+            {row.original.job_id}
+        </Link>
       );
     },
   },
-  // links
   {
-    field: "posted",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    header: "posted",
+    id: "posted",
+    accessorFn: (row: Job) => formatDate(row.posted),
+    filterVariant: 'date',
+    sortingFn: "datetime",
+    size: 150,
   },
   {
-    field: "started",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    header: "updated",
+    id: "updated",
+    accessorFn: (row: Job) => formatDate(row.updated),
+    filterVariant: 'date',
+    sortingFn: "datetime",
+    size: 150,
   },
   {
-    field: "updated",
-    type: "date",
-    valueFormatter: (row: GridValueFormatterParams) => formatDate(row.value),
-    width: 125,
+    header: "started",
+    id: "started",
+    accessorFn: (row: Job) => formatDate(row.started),
+    filterVariant: 'date',
+    sortingFn: "datetime",
+    size: 150,
   },
   {
-    field: "runtime",
-    valueGetter: (params: GridValueGetterParams) => {
-      const start = Date.parse(params.row.started);
-      const end = Date.parse(params.row.updated);
+    header: "runtime",
+    id: "runtime",
+    size: 110,
+    accessorFn: (row: Job) => {
+      const start = Date.parse(row.started);
+      const end = Date.parse(row.updated);
       if (!end || !start) return null;
-      return Math.round((end - start) / 1000);
+      return formatDuration(Math.round((end - start) / 1000));
     },
-    valueFormatter: (row: GridValueFormatterParams) =>
-      formatDuration(row.value),
+    enableColumnFilter: false,
   },
   {
-    field: "duration",
-    valueFormatter: (row: GridValueFormatterParams) =>
-      formatDuration(row.value),
+    header: "duration",
+    id: "duration",
+    size: 120,
+    accessorFn: (row: Job) =>
+      formatDuration(row.duration),
+    enableColumnFilter: false,
   },
   {
-    field: "waiting",
-    headerName: "in waiting",
-    valueGetter: (params: GridValueGetterParams) => {
-      const start = Date.parse(params.row.started);
-      const end = Date.parse(params.row.updated);
-      if (!end || !start || !params.row.duration) return null;
-      return Math.round((end - start) / 1000 - params.row.duration);
+    header: "in waiting",
+    id: "waiting",
+    size: 100,
+    accessorFn: (row: Job) => {
+      const start = Date.parse(row.started);
+      const end = Date.parse(row.updated);
+      if (!end || !start || !row.duration) return null;
+      return formatDuration(Math.round((end - start) / 1000 - row.duration));
     },
-    valueFormatter: (row: GridValueFormatterParams) =>
-      formatDuration(row.value),
+    enableColumnFilter: false,
   },
   {
-    field: "machine_type",
-    headerName: "machine type",
+    header: "machine type",
+    accessorKey: "machine_type",
+    filterVariant: "select",
   },
   {
-    field: "os_type",
-    headerName: "OS type",
-    width: 85,
+    header: "OS type",
+    size: 85,
+    accessorFn: (row: Job) => row.os_type + "",
+    filterVariant: "select",
   },
   {
-    field: "os_version",
-    headerName: "OS version",
-    width: 85,
+    header: "OS version",
+    accessorFn: (row: Job) => row.os_version + "",
+    size: 85,
+    filterVariant: "select",
   },
   {
-    field: "nodes",
-    headerName: "nodes",
-    valueGetter: (params: GridValueGetterParams) => {
-      return Object.keys(params.row.targets || {}).length || null;
+    header: "nodes",
+    accessorKey: "nodes",
+    accessorFn: (row: Job) => {
+      return Object.keys(row.targets || row.roles || {}).length || 0;
     },
-    width: 85,
+    size: 85,
   },
 ];
 
-interface JobListProps {
-  query: UseQueryResult<Run> | UseQueryResult<NodeJobs>;
-  params: DecodedValueMap<QueryParamConfigMap>;
-  setter: SetQuery<QueryParamConfigMap>;
-  pagingMode: "client" | "server";
+function jobStatusToThemeCategory(status: string): keyof Theme["palette"] {
+  switch (status) {
+    case "dead": return "error";
+    case "fail": return "error";
+    case "finished fail": return "error";
+    case "pass": return "success";
+    case "finished pass": return "success";
+    case "running": return "warning";
+    default: return "info";
+  }
+};
+
+type JobDetailPanelProps = {
+  row: MRT_Row<Job>;
 }
 
-export default function JobList({ query, params, setter, pagingMode }: JobListProps) {
-  if (query.isError) return null;
-  let extraProps: Record<string, any> = {"paginationMode": pagingMode}
-  if (pagingMode === "client") {
-    extraProps["rowCount"] = query.data?.jobs?.length || 999;
-  } 
-  let filterModel: GridFilterModel = { items: [] };
-  if (params.status) {
-    filterModel = {
-      items: [
+function JobDetailPanel(props: JobDetailPanelProps): ReactNode {
+  const failure_reason = props.row.original.failure_reason;
+  if ( ! failure_reason ) return null;
+  return (
+    <Box
+      sx={{
+        borderLeft: 1,
+        borderColor: (theme) => theme.palette.grey[800],
+        padding: 1,
+        color: (theme) => theme.palette.text.primary,
+      }}
+    >
+      <Typography
+        variant="subtitle2"
+      >
+        Failure Reason:
+      </Typography>
+      <Typography
+        variant="caption"
+      >
+        <code>{failure_reason}</code>
+      </Typography>
+    </Box>
+  )
+};
+
+type JobListProps = {
+  query: UseQueryResult<Run> | UseQueryResult<NodeJobs>;
+  sortMode?: "time" | "id";
+}
+
+export default function JobList({ query, sortMode }: JobListProps) {
+  const options = useDefaultTableOptions<Job>();
+  const data = query.data?.jobs || [];
+  const table = useMaterialReactTable({
+    ...options,
+    columns,
+    data: data,
+    rowCount: data.length,
+    enableFacetedValues: true,
+    initialState: {
+      ...options.initialState,
+      columnVisibility: {
+        posted: false,
+        updated: false,
+        duration: false,
+        waiting: false,
+      },
+      pagination: {
+        pageIndex: 0,
+        pageSize: 25,
+      },
+      sorting: [
         {
-          field: "status",
-          value: params.status,
-          operator: "contains",
+          id: sortMode === "time"? "started" : "job_id",
+          desc: true,
         },
       ],
-    };
-  }
-  const onFilterModelChange = (model: GridFilterModel) => {
-    setter({ status: model.items[0].value || null });
-  };
-  return (
-    <DataGrid
-      columns={columns}
-      rows={query.data?.jobs || []}
-      loading={query.isLoading || query.isFetching}
-      initialState={{
-        sorting: {
-          sortModel: [
-            {
-              field: "job_id",
-              sort: "asc",
-            },
-          ],
-        },
-      }}
-      filterMode="client"
-      filterModel={filterModel}
-      onFilterModelChange={onFilterModelChange}
-      onPaginationModelChange={setter}
-      pageSize={params.pageSize}
-      page={params.page}
-      setter={setter}
-      getRowClassName={(params: GridRowClassNameParams) => {
-        return `status-${params.row.status}`;
-      }}
-      {...extraProps}
-    />
-  );
+    },
+    state: {
+      isLoading: query.isLoading || query.isFetching,
+    },
+    renderDetailPanel: JobDetailPanel,
+    muiTableBodyRowProps: ({row, isDetailPanel}) => {
+      if ( isDetailPanel ) {
+        return row.original.failure_reason? {} : {className: "empty"};
+      }
+      const category = jobStatusToThemeCategory(row.original.status);
+      if ( category ) return { className: category };
+      return {};
+    },
+  });
+  if (query.isError) return null;
+  return <MaterialReactTable table={table} />
 }

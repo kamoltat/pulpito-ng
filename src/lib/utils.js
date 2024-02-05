@@ -2,8 +2,13 @@ import { format } from "date-fns";
 import convert from "color-convert";
 
 function formatDate(orig) {
-  if (!orig) return;
+  if (!orig) return "";
   return format(new Date(orig), "yyyy-MM-dd HH:mm:ss");
+}
+
+function formatDay(orig) {
+  if (!orig) return "";
+  return format(new Date(orig), "yyyy-MM-dd");
 }
 
 function pad(num) {
@@ -44,4 +49,4 @@ function dirName(path) {
   return array.join("/");
 }
 
-export { formatDate, getDuration, formatDuration, colorTint, dirName };
+export { formatDate, formatDay, getDuration, formatDuration, colorTint, dirName };
